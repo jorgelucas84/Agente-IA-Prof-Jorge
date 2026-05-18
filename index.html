@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agente Científico LMP / INCT — UFC (Gemini Edition)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Mantive todo o seu CSS original para preservar o design impecável */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f3ef;
+    --surface: #ffffff;
+    --border: #e2e1da;
+    --blue-dark: #0C447C;
+    --blue-mid: #185FA5;
+    --blue-light: #E6F1FB;
+    --blue-accent: #85B7EB;
+    --green-dark: #27500A;
+    --green-mid: #3B6D11;
+    --green-light: #EAF3DE;
+    --orange-dark: #633806;
+    --orange-mid: #854F0B;
+    --orange-light: #FAEEDA;
+    --red-dark: #791F1F;
+    --red-mid: #A32D2D;
+    --red-light: #FCEBEB;
+    --text: #1a1a1a;
+    --text-muted: #777;
+    --teal-light: #E1F5EE;
+    --teal-dark: #085041;
+    --radius: 12px;
+    --font: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+  .app { max-width: 800px; margin: 0 auto; padding: 24px 16px 48px; }
+  .header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 16px 20px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); }
+  .header-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .header-icon i { font-size: 22px; color: var(--blue-dark); }
+  .header-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .header-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: var(--mono); }
+  .status-dot { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-mid); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .apikey-bar { background: var(--blue-light); border: 1px solid var(--blue-accent); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .apikey-bar label { font-size: 13px; color: var(--blue-dark); font-weight: 500; white-space: nowrap; }
+  .apikey-bar input { flex: 1; min-width: 200px; font-size: 12px; padding: 6px 10px; border: 1px solid var(--blue-accent); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--mono); }
+  .apikey-bar button { font-size: 12px; padding: 6px 14px; border-radius: 8px; border: none; background: var(--blue-mid); color: #fff; cursor: pointer; font-family: var(--font); }
+  .apikey-bar.saved { background: var(--green-light); border-color: var(--green-mid); }
+  .apikey-bar.saved label { color: var(--green-dark); }
+  .apikey-bar.saved input { border-color: var(--green-mid); }
+  .apikey-bar.saved button { background: var(--green-mid); }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .metric { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); padding: 14px 16px; }
+  .metric-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-family: var(--mono); }
+  .metric-value { font-size: 26px; font-weight: 600; }
+  .metric-value.verde { color: var(--green-mid); }
+  .metric-value.laranja { color: var(--orange-mid); }
+  .metric-value.vermelho { color: var(--red-mid); }
+  .nav { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; background: var(--surface); border-radius: 10px; border: 1px solid var(--border); padding: 6px; }
+  .nav-btn { background: transparent; border: none; cursor: pointer; font-size: 13px; padding: 7px 14px; border-radius: 8px; color: #666; font-family: var(--font); transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+  .nav-btn.active { background: var(--blue-light); color: var(--blue-dark); font-weight: 500; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .chat-area { height: 360px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; }
+  .msg-row { display: flex; gap: 8px; align-items: flex-start; }
+  .msg-row.user { flex-direction: row-reverse; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .avatar.bot { background: var(--blue-light); }
+  .avatar.user { background: var(--green-light); }
+  .bubble { padding: 10px 14px; max-width: 85%; font-size: 13.5px; line-height: 1.7; }
+  .bubble.bot { background: var(--surface); border: 1px solid var(--border); border-radius: 0 12px 12px 12px; }
+  .bubble.user { background: var(--blue-light); border-radius: 12px 0 12px 12px; color: #042C53; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+  .chip { font-size: 12px; padding: 5px 12px; border-radius: 14px; border: 1px solid var(--border); cursor: pointer; background: var(--surface); color: #555; font-family: var(--font); transition: all 0.15s; }
+  .chat-input-row { display: flex; gap: 8px; }
+  .chat-input-row textarea { flex: 1; font-size: 14px; resize: none; padding: 9px 13px; border: 1px solid var(--border); border-radius: 10px; outline: none; }
+  .send-btn { padding: 9px 18px; background: var(--blue-dark); color: #fff; border: none; border-radius: 10px; cursor: pointer; }
+  .ori-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; }
+  .risco-alto { border-left: 4px solid var(--red-mid); }
+  .risco-medio { border-left: 4px solid var(--orange-mid); }
+  .badge { font-size: 11px; padding: 3px 9px; border-radius: 10px; font-weight: 500; font-family: var(--mono); }
+  .badge-ok { background: var(--green-light); color: var(--green-dark); }
+  .badge-warn { background: var(--orange-light); color: var(--orange-dark); }
+  .badge-risk { background: var(--red-light); color: var(--red-dark); }
+  .badge-info { background: var(--blue-light); color: var(--blue-dark); }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 16px; padding: 24px; width: 90%; max-width: 520px; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #333; color: #fff; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .typing-dots span { width: 8px; height: 8px; background: var(--blue-accent); border-radius: 50%; display: inline-block; animation: blink 1.2s infinite; }
+  @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="apikey-bar" id="apibar">
+    <i class="ti ti-brand-google" style="font-size:18px;flex-shrink:0;color:var(--blue-dark);"></i>
+    <label>Chave API Gemini:</label>
+    <input type="password" id="apikey-input" placeholder="Cole sua chave do Google AI Studio aqui..." autocomplete="off">
+    <button onclick="salvarChave()">Salvar</button>
+    <span id="apikey-status" style="font-size:12px;"></span>
+  </div>
+
+  <div class="header">
+    <div class="header-icon"><i class="ti ti-atom"></i></div>
+    <div>
+      <div class="header-title">Agente Científico LMP / INCT — UFC</div>
+      <div class="header-sub">Gemini 1.5 Flash Ativado · <span id="hdr-count">10</span> orientados</div>
+    </div>
+    <div class="status-dot"><div class="dot"></div> ativo</div>
+  </div>
+
+  <div class="metrics" id="metrics-grid">
+    <div class="metric"><div class="metric-label">Total</div><div class="metric-value" id="m-total">10</div></div>
+    <div class="metric"><div class="metric-label">No prazo</div><div class="metric-value verde" id="m-ok">0</div></div>
+    <div class="metric"><div class="metric-label">Atenção</div><div class="metric-value laranja" id="m-med">0</div></div>
+    <div class="metric"><div class="metric-label">Alto risco</div><div class="metric-value vermelho" id="m-alto">0</div></div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('chat',this)"><i class="ti ti-message-circle"></i>Agente</button>
+    <button class="nav-btn" onclick="showTab('orientados',this)"><i class="ti ti-users"></i>Orientados</button>
+    <button class="nav-btn" onclick="showTab('regimento',this)"><i class="ti ti-book"></i>Regimento</button>
+  </nav>
+
+  <div id="panel-chat" class="panel active">
+    <div class="chat-area" id="chat-msgs">
+      <div class="msg-row">
+        <div class="avatar bot"><i class="ti ti-atom"></i></div>
+        <div class="bubble bot">Olá! Agora estou operando com o <strong>Gemini 1.5</strong>. Posso analisar os prazos do PETRAN e sugerir hipóteses para o LMP. Como posso ajudar hoje?</div>
+      </div>
+    </div>
+    <div class="chips">
+      <button class="chip" onclick="sendCmd('Analise o risco de cada doutorando conforme o regimento')">Análise de Risco ↗</button>
+      <button class="chip" onclick="sendCmd('Quem precisa qualificar nos próximos 6 meses?')">Próximas Qualificações ↗</button>
+    </div>
+    <div class="chat-input-row">
+      <textarea id="chat-in" rows="2" placeholder="Pergunte sobre orientados ou regimento..."></textarea>
+      <button class="send-btn" id="send-btn" onclick="doSend()"><i class="ti ti-send"></i></button>
+    </div>
+  </div>
+
+  <div id="panel-orientados" class="panel">
+    <div id="ori-list"></div>
+  </div>
+
+  <div id="panel-regimento" class="panel"><div id="reg-content"></div></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// --- LOGICA DE DADOS ---
+let API_KEY = localStorage.getItem('gemini_apikey') || '';
+if(API_KEY) { document.getElementById('apikey-input').value = API_KEY; marcarChaveSalva(); }
+
+function salvarChave(){
+  API_KEY = document.getElementById('apikey-input').value.trim();
+  localStorage.setItem('gemini_apikey', API_KEY);
+  marcarChaveSalva();
+  toast('Chave Gemini salva!');
+}
+
+function marcarChaveSalva(){
+  document.getElementById('apikey-status').textContent = '✓ ativa';
+  document.getElementById('apibar').className = 'apikey-bar saved';
+}
+
+// Dados originais que você enviou
+let orientados = [
+    { id:1,  nome:'Haikel Buganem Busgaib Gonçalves', nivel:'Doutorado', programa:'PETRAN', ingresso:'2023-07-01', total:60, qualif:'devida',   tema:'Road Public Works Management System Using Low-Cost Technologies and Artificial Intelligence' },
+    { id:2,  nome:'Natasha Porto Alexandre',           nivel:'Doutorado', programa:'PETRAN', ingresso:'2024-11-01', total:60, qualif:'ok',        tema:'Avaliação da Incorporação de Materiais de Mudança de Fase Microencapsulados em Pavimentos Asfálticos' },
+    { id:3,  nome:'Karina de Lima',                    nivel:'Doutorado', programa:'PETRAN', ingresso:'2026-03-01', total:60, qualif:'ok',        tema:'Interpretação de Variações de Rigidez e de Vida de Fadiga em Ensaios Cíclicos com Repouso em Materiais Betuminosos Condicionados à Umidade' },
+    { id:4,  nome:'Nayara de Oliveira Gurjão',         nivel:'Doutorado', programa:'PETRAN', ingresso:'2024-11-01', total:60, qualif:'ok',        tema:'Análise integrada da infraestrutura viária e de dados espaciais como suporte à proposição de soluções sustentáveis nas cidades' },
+    { id:5,  nome:'Eulália Romão Barbosa',             nivel:'Doutorado', programa:'PETRAN', ingresso:'2025-04-01', total:60, qualif:'ok',        tema:'Avaliação multiescala da mobilização do ligante em misturas asfálticas submetidas a múltiplos ciclos de reciclagem' },
+    { id:6,  nome:'Mauro José da Silva Filho',         nivel:'Doutorado', programa:'PETRAN', ingresso:'2024-11-01', total:60, qualif:'ok',        tema:'Desenvolvimento, validação e proposição de protocolos padronizados para ensaio de Ressonância por Impacto para mistura asfáltica' },
+    { id:7,  nome:'Otávio José de Freitas Gomes',      nivel:'Doutorado', programa:'PETRAN', ingresso:'2024-03-01', total:60, qualif:'pendente',  tema:'Desenvolvimento de técnicas de caracterização visual de materiais utilizados na pavimentação com base em ciência de dados e processamento de imagens' },
+    { id:8,  nome:'Arthur Veras Moreira',              nivel:'Graduação', programa:'DET',      ingresso:'2023-03-01', total:12, qualif:null,        tema:'Integração de ACV e ACCV no Dimensionamento Mecanístico-Empírico de Pavimentos Asfálticos' },
+    { id:9,  nome:'Camila Carvalho Noberto',           nivel:'Doutorado', programa:'DEHA',   ingresso:'2024-03-01', total:60, qualif:'pendente',  tema:'Avaliação do Ciclo de Vida de Pavimentos Rodoviários com Incorporação de Resíduos em Urucu' },
+    { id:10, nome:'Aislan Nogueira Dutra',             nivel:'Mestrado',  programa:'PETRAN', ingresso:'2025-04-01', total:30, qualif:'ok',        tema:'Desenvolvimento de modelo de previsão do perfil de temperatura de pavimentos asfálticos' },
+];
+
+function calcMeses(ingresso){
+  const ini = new Date(ingresso);
+  const hoje = new Date();
+  return Math.max(0, Math.round((hoje - ini) / (1000*60*60*24*30.44)));
+}
+
+function calcRisco(o){
+  const m = calcMeses(o.ingresso);
+  const pct = m / o.total;
+  if(o.qualif === 'atrasada' || pct >= 0.8) return 'alto';
+  if(pct >= 0.6 || o.qualif === 'devida') return 'medio';
+  return 'baixo';
+}
+
+function atualizarMetricas(){
+  document.getElementById('m-total').textContent = orientados.length;
+  document.getElementById('m-ok').textContent = orientados.filter(o=>calcRisco(o)==='baixo').length;
+  document.getElementById('m-med').textContent = orientados.filter(o=>calcRisco(o)==='medio').length;
+  document.getElementById('m-alto').textContent = orientados.filter(o=>calcRisco(o)==='alto').length;
+}
+
+function renderOrientados(){
+  const list = document.getElementById('ori-list');
+  list.innerHTML = orientados.map(o => `
+    <div class="ori-card risco-${calcRisco(o)}">
+      <div style="font-weight:600">${o.nome}</div>
+      <div style="font-size:12px; color:#666">${o.tema}</div>
+      <div style="margin-top:8px">
+        <span class="badge badge-info">${o.nivel}</span>
+        <span class="badge ${calcRisco(o)==='alto'?'badge-risk':calcRisco(o)==='medio'?'badge-warn':'badge-ok'}">${calcRisco(o)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// --- INTEGRAÇÃO GEMINI ---
+function buildSystemPrompt(){
+  const listaTexto = orientados.map(o => `- ${o.nome}: ${o.nivel}, Ingresso ${o.ingresso}, Risco ${calcRisco(o)}, Tema: ${o.tema}`).join('\n');
+  return `Você é o Agente Científico do LMP/UFC. 
+Regras PETRAN: Doutorado 60 meses (Qualif. 33m), Mestrado 30 meses (Qualif. 21m).
+Orientados atuais:
+${listaTexto}
+Responda de forma analítica e em português.`;
+}
+
+let chatHistory = [];
+
+async function doSend(){
+  const input = document.getElementById('chat-in');
+  const text = input.value.trim();
+  if(!text || !API_KEY) return;
+
+  appendMsg('user', text);
+  input.value = '';
+  showTyping();
+
+  // Chamada para a API do Gemini
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          { role: "user", parts: [{ text: buildSystemPrompt() }] },
+          ...chatHistory,
+          { role: "user", parts: [{ text: text }] }
+        ],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
+      })
+    });
+
+    const data = await response.json();
+    const reply = data.candidates[0].content.parts[0].text;
+    
+    document.getElementById('typing-row')?.remove();
+    appendMsg('assistant', reply);
+    
+    // Atualiza histórico
+    chatHistory.push({ role: "user", parts: [{ text: text }] });
+    chatHistory.push({ role: "model", parts: [{ text: reply }] });
+
+  } catch (err) {
+    document.getElementById('typing-row')?.remove();
+    appendMsg('assistant', "Erro ao conectar com Gemini. Verifique sua chave.");
+  }
+}
+
+function appendMsg(role, text){
+  const box = document.getElementById('chat-msgs');
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (role==='assistant'?'':'user');
+  row.innerHTML = `<div class="bubble ${role==='assistant'?'bot':'user'}">${text.replace(/\n/g,'<br>')}</div>`;
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping(){
+  const box = document.getElementById('chat-msgs');
+  const row = document.createElement('div');
+  row.id = 'typing-row'; row.className = 'msg-row';
+  row.innerHTML = `<div class="bubble bot"><div class="typing-dots"><span></span> <span></span> <span></span></div></div>`;
+  box.appendChild(row);
+}
+
+function showTab(tab, btn){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  btn.classList.add('active');
+  if(tab==='orientados') renderOrientados();
+}
+
+function sendCmd(t){ document.getElementById('chat-in').value = t; doSend(); }
+function toast(m){ 
+  const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+atualizarMetricas();
+</script>
+</body>
+</html>
